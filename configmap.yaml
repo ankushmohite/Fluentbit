@@ -1,0 +1,197 @@
+apiVersion: v1
+
+kind: ConfigMap
+
+metadata:
+
+  name: fluent-bit-config
+
+  namespace: logging
+
+  labels:
+
+    app.kubernetes.io/name: fluent-bit
+
+    app.kubernetes.io/component: logging
+
+    app.kubernetes.io/part-of: observability
+
+data:
+
+  fluent-bit.conf: |
+
+    [SERVICE]
+
+        Flush              1
+
+        Daemon             Off
+
+        Log_Level          info
+
+        Parsers_File       parsers.conf
+
+ 
+
+        HTTP_Server        On
+
+        HTTP_Listen        0.0.0.0
+
+        HTTP_Port          2020
+
+ 
+
+    [INPUT]
+
+        Name               tail
+
+        Path               /var/log/containers/biz-sys-base-be*.log,/var/log/containers/biz-sys-auth-be*.log
+
+        Tag                brokerage.*
+
+        Parser             cri
+
+        DB                 /var/lib/fluent-bit/brokerage.db
+
+        DB.Sync            Normal
+
+        Refresh_Interval   5
+
+        Rotate_Wait        30
+
+        Skip_Long_Lines    Off
+
+        Read_from_Head     On
+
+       
+
+    [INPUT]
+
+        Name               tail
+
+        Path               /var/log/containers/erp-bud-cla-be*.log,/var/log/containers/erp-bud-buyer-uw-be*.log,/var/log/containers/erp-ecib-uw*.log,/var/log/containers/erp-bud-intl-bank*.log,/var/log/containers/erp-bud-util*.log,/var/log/containers/erp-bud-bsal*.log,/var/log/containers/erp-bud-cra-fe*.log,/var/log/containers/erp-bud-cra-be*.log,/var/log/containers/erp-bud-buyer-uw-fe*.log,/var/log/containers/erp-bud-cla-fe*.log
+
+        Tag                cla-direct.*
+
+        Parser             cri
+
+        DB                 /var/lib/fluent-bit/cla-direct.db
+
+        DB.Sync            Normal
+
+        Refresh_Interval   5
+
+        Rotate_Wait        30
+
+        Skip_Long_Lines    Off
+
+        Read_from_Head     Off
+
+ 
+
+    [FILTER]
+
+        Name               parser
+
+        Match              brokerage.*
+
+        Key_Name           log
+
+        Parser             json
+
+        Reserve_Data       Off
+
+        Preserve_Key       Off
+
+ 
+
+    [FILTER]
+
+        Name               parser
+
+        Match              cla-direct.*
+
+        Key_Name           log
+
+        Parser             json
+
+        Reserve_Data       Off
+
+        Preserve_Key       Off
+
+ 
+
+ 
+
+    [OUTPUT]
+
+        Name               tcp
+
+        Match              brokerage.*
+
+        Host               10.12.1.29
+
+        Port               5000
+
+        Format             json
+
+        Retry_Limit        False
+
+        net.keepalive      On
+
+        net.connect_timeout 10
+
+ 
+
+    [OUTPUT]
+
+        Name                es
+
+        Match               cla-direct.*
+
+        Host                10.12.1.29
+
+        Port                9200
+
+        Index               fluentbit-test-erp-bud-cla-be
+
+        HTTP_User           elastic
+
+        HTTP_Passwd         Rtz@3449!
+
+        tls                 On
+
+        tls.verify          Off
+
+        Suppress_Type_Name  On
+
+        Retry_Limit         False
+
+ 
+
+ 
+
+  parsers.conf: |
+
+    [PARSER]
+
+        Name        cri
+
+        Format      regex
+
+        Regex       ^(?<time>[^ ]+) (?<stream>stdout|stderr) (?<logtag>[^ ]*) (?<log>.*)$
+
+        Time_Key    time
+
+        Time_Format %Y-%m-%dT%H:%M:%S.%L%z
+
+ 
+
+    [PARSER]
+
+        Name        json
+
+        Format      json
+
+ 
+
+ 
