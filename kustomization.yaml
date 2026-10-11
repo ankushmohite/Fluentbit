@@ -1,0 +1,15 @@
+resources:
+
+- namespace.yaml
+
+- serviceaccount.yaml
+
+- clusterrole.yaml
+
+- clusterrolebinding.yaml
+
+- configmap.yaml
+
+- daemonset.yaml
+
+ 
