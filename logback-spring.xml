@@ -1,0 +1,271 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+ 
+
+<configuration>
+
+ 
+
+    <property resource="bootstrap.yml"/>
+
+ 
+
+    <springProperty
+
+            scope="context"
+
+            name="springAppName"
+
+            source="spring.application.name"/>
+
+ 
+
+ 
+
+    <!-- ================================= -->
+
+    <!-- CONSOLE APPENDER                  -->
+
+    <!-- Application generates JSON        -->
+
+    <!-- Fluent Bit forwards it as-is      -->
+
+    <!-- ================================= -->
+
+ 
+
+    <appender name="Console"
+
+              class="ch.qos.logback.core.ConsoleAppender">
+
+ 
+
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder"/>
+
+ 
+
+    </appender>
+
+ 
+
+ 
+
+    <!-- ================================= -->
+
+    <!-- ASYNCHRONOUS CONSOLE APPENDER     -->
+
+    <!-- Prevents application threads      -->
+
+    <!-- from blocking on stdout logging   -->
+
+    <!-- ================================= -->
+
+ 
+
+    <appender name="AsyncConsole"
+
+              class="ch.qos.logback.classic.AsyncAppender">
+
+ 
+
+        <!-- Maximum number of pending log events -->
+
+        <queueSize>8192</queueSize>
+
+ 
+
+        <!-- Do not discard INFO/DEBUG/TRACE events early -->
+
+        <discardingThreshold>20</discardingThreshold>
+
+ 
+
+        <!-- Do not block application threads when queue is full -->
+
+        <neverBlock>true</neverBlock>
+
+ 
+
+        <!-- Flush queued logs during graceful shutdown -->
+
+        <maxFlushTime>5000</maxFlushTime>
+
+ 
+
+        <appender-ref ref="Console"/>
+
+ 
+
+    </appender>
+
+ 
+
+ 
+
+    <!-- ================================= -->
+
+    <!-- LOCAL / DEV                       -->
+
+    <!-- ================================= -->
+
+ 
+
+    <springProfile name="local | local-secured | dev | dev-secured">
+
+ 
+
+        <root level="INFO">
+
+            <appender-ref ref="AsyncConsole"/>
+
+        </root>
+
+ 
+
+        <logger name="in.ecgc"
+
+                level="INFO"
+
+                additivity="false">
+
+ 
+
+            <appender-ref ref="AsyncConsole"/>
+
+ 
+
+        </logger>
+
+ 
+
+    </springProfile>
+
+ 
+
+ 
+
+    <!-- ================================= -->
+
+    <!-- SIT / QA / UAT                    -->
+
+    <!-- ================================= -->
+
+ 
+
+    <springProfile name="sit | sit-secured | qa | qa-secured | uat">
+
+ 
+
+        <root level="INFO">
+
+            <appender-ref ref="AsyncConsole"/>
+
+        </root>
+
+ 
+
+        <logger name="in.ecgc"
+
+                level="TRACE"
+
+                additivity="false">
+
+ 
+
+            <appender-ref ref="AsyncConsole"/>
+
+ 
+
+        </logger>
+
+ 
+
+    </springProfile>
+
+ 
+
+ 
+
+    <!-- ================================= -->
+
+    <!-- PRE-PROD                          -->
+
+    <!-- ================================= -->
+
+ 
+
+    <springProfile name="pre-prod">
+
+ 
+
+        <root level="INFO">
+
+            <appender-ref ref="AsyncConsole"/>
+
+        </root>
+
+ 
+
+        <logger name="in.ecgc"
+
+                level="TRACE"
+
+                additivity="false">
+
+ 
+
+            <appender-ref ref="AsyncConsole"/>
+
+ 
+
+        </logger>
+
+ 
+
+    </springProfile>
+
+ 
+
+ 
+
+    <!-- ================================= -->
+
+    <!-- PROD                              -->
+
+    <!-- ================================= -->
+
+ 
+
+    <springProfile name="prod">
+
+ 
+
+        <root level="INFO">
+
+            <appender-ref ref="AsyncConsole"/>
+
+        </root>
+
+ 
+
+        <logger name="in.ecgc"
+
+                level="INFO"
+
+                additivity="false">
+
+ 
+
+            <appender-ref ref="AsyncConsole"/>
+
+ 
+
+        </logger>
+
+ 
+
+    </springProfile>
+
+ 
+
+</configuration>
